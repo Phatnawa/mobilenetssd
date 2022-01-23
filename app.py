@@ -158,12 +158,14 @@ def event_handle(event,json_line):
         else :
             replyObj = TextSendMessage(text=msg)
             line_bot_api.reply_message(rtoken, replyObj)
-    elif msgType == "image":
-        try:
+        else :
             headers = request.headers
             json_headers = ({k:v for k, v in headers.items()})
             json_headers.update({'Host':'bots.dialogflow.com'})
             url = "https://dialogflow.cloud.google.com/v1/integrations/line/webhook/43860975-cfc9-4872-9c02-6a78f1dbcb0f"
+            requests.post(url,data=json_line, headers=json_headers)
+   elif msgType == "image" :
+            try:
     else:
         sk_id = np.random.randint(1,17)
         replyObj = StickerSendMessage(package_id=str(1),sticker_id=str(sk_id))
