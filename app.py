@@ -108,7 +108,7 @@ def callback():
     no_event = len(decoded['events'])
     for i in range(no_event):
             event = decoded['events'][i]
-            event_handle(event)
+            event_handle(event,json_line)
 
     # เชื่อมต่อกับ dialogflow
     #intent = decoded["queryResult"]["intent"]["displayName"] 
@@ -124,7 +124,7 @@ def reply(intent,text,reply_token,id,disname):
     text_message = TextSendMessage(text="ทดสอบ")
     line_bot_api.reply_message(reply_token,text_message)
 
-def event_handle(event):
+def event_handle(event,json_line):
     print(event)
     try:
         userId = event['source']['userId']
@@ -160,26 +160,11 @@ def event_handle(event):
         line_bot_api.reply_message(rtoken, replyObj)
     elif msgType == "image":
         try:
-            message_content = line_bot_api.get_message_content(event['message']['id'])
-            i = Image.open(BytesIO(message_content.content))
-            filename = event['message']['id'] + '.jpg'
-            i.save(UPLOAD_FOLDER + filename)
-            process_file(os.path.join(UPLOAD_FOLDER, filename), filename)
-
-            url = request.url_root + DOWNLOAD_FOLDER + filename
-            
-            line_bot_api.reply_message(
-                rtoken, [
-                    TextSendMessage(text='Object detection result:'),
-                    ImageSendMessage(url,url)
-                ])    
-    
-        except:
-            message = TextSendMessage(text="เกิดข้อผิดพลาด กรุณาส่งใหม่อีกครั้ง")
-            line_bot_api.reply_message(event.reply_token, message)
-
-            return 0
-
+            headers = request.headers
+            json_headers = ({k:v for k, v in headers.items()})
+            json_headers.update({'Host':'bots.dialogflow.com'})
+            url = "https://dialogflow.cloud.google.com/v1/integrations/line/webhook/43860975-cfc9-4872-9c02-6a78f1dbcb0f"
+requests.post(url,data=json_line, headers=json_headers)
     else:
         sk_id = np.random.randint(1,17)
         replyObj = StickerSendMessage(package_id=str(1),sticker_id=str(sk_id))
