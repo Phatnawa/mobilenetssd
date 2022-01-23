@@ -157,7 +157,7 @@ def event_handle(event,json_line):
             replyObj = TextSendMessage(text="ไปคับ")
         else :
             replyObj = TextSendMessage(text=msg)
-        line_bot_api.reply_message(rtoken, replyObj)
+            line_bot_api.reply_message(rtoken, replyObj)
     elif msgType == "image":
         try:
             headers = request.headers
