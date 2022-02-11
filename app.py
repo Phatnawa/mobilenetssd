@@ -165,16 +165,32 @@ def event_handle(event,json_line):
             url = "https://dialogflow.cloud.google.com/v1/integrations/line/webhook/43860975-cfc9-4872-9c02-6a78f1dbcb0f"
             requests.post(url,data=json_line, headers=json_headers)
         elif msgType == "image":
-            headers = request.headers
-            json_headers = ({k:v for k, v in headers.items()})
-            json_headers.update({'Host':'bots.dialogflow.com'})
-            url = "https://dialogflow.cloud.google.com/v1/integrations/line/webhook/43860975-cfc9-4872-9c02-6a78f1dbcb0f"
-            requests.post(url,data=json_line, headers=json_headers)
-        else:
-            sk_id = np.random.randint(1,17)
-            replyObj = StickerSendMessage(package_id=str(1),sticker_id=str(sk_id))
-            line_bot_api.reply_message(rtoken, replyObj)
-        return ''
+        try:
+            message_content = line_bot_api.get_message_content(event['message']['id'])
+            i = Image.open(BytesIO(message_content.content))
+            filename = event['message']['id'] + '.jpg'
+            i.save(UPLOAD_FOLDER + filename)
+            process_file(os.path.join(UPLOAD_FOLDER, filename), filename)
+
+            url = request.url_root + DOWNLOAD_FOLDER + filename
+            
+            line_bot_api.reply_message(
+                rtoken, [
+                    TextSendMessage(text='Object detection result:'),
+                    ImageSendMessage(url,url)
+                ])    
+    
+        except:
+            message = TextSendMessage(text="เกิดข้อผิดพลาด กรุณาส่งใหม่อีกครั้ง")
+            line_bot_api.reply_message(event.reply_token, message)
+
+            return 0
+
+    else:
+        sk_id = np.random.randint(1,17)
+        replyObj = StickerSendMessage(package_id=str(1),sticker_id=str(sk_id))
+        line_bot_api.reply_message(rtoken, replyObj)
+    return ''
 
 if __name__ == '__main__':
     app.run()
